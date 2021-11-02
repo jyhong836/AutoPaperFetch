@@ -24,8 +24,11 @@ class NeurIPSPaperSearch(object):
         soup = BeautifulSoup(html_text, 'html.parser')
 
         all_paper_titles = [bold_txt.text for bold_txt in soup.find_all('b')]
-        for p in all_paper_titles[:2]:
-            print(f" Drop: {p}")
+        # make sure the dropped heads are correct.
+        assert all_paper_titles[0] == "NeurIPS | 2021 ", f"Unexpected head at index 0: '{all_paper_titles[0]}'"
+        # print(all_paper_titles[1] == '   Calls 2021')
+        # print(all_paper_titles[1], '   Calls 2021')
+        assert 'Calls 2021' in all_paper_titles[1], f"Unexpected head at index 1: '{all_paper_titles[1]}'"
         all_paper_titles = all_paper_titles[2:]  # remove two
         print(f'Found {len(all_paper_titles)} papers in {self.venue}{self.year}')
         self.all_paper_titles = all_paper_titles
@@ -97,6 +100,9 @@ class Paper(object):
         to_dir = os.path.expanduser(to_dir)
         self.arxiv_ver.download_pdf(dirpath=to_dir)
 
+    def __repr__(self) -> str:
+        return ("[ArXiv] " if self.has_arxiv else " "*len("[ArXiv] ")) + f"{self.title}"
+
 
 def main(args):
     from tqdm import tqdm
@@ -118,6 +124,10 @@ def main(args):
         # sleep(0.1)
     print(f"Found {cnt_arxiv} out of {len(matched_papers)} papers in arxiv")
 
+    if args.print_paper:
+        for p in matched_papers:
+            print(p)
+
     if args.download:
         downalod_dir = f'~/Downloads/neurips2021/{args.keyword}'
         downalod_dir = os.path.expanduser(downalod_dir)
@@ -135,6 +145,8 @@ if __name__ == '__main__':
         description="Automatically search and download papers from conference.")
     parser.add_argument('keyword', type=str,
                         help='download pdf files if available on ArXiv.')
+    parser.add_argument('--print-paper', action='store_true',
+                        help='print fetched paper infos.')
     parser.add_argument('--download', action='store_true',
                         help='download pdf files if available on ArXiv.')
     args = parser.parse_args()
