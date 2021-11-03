@@ -129,7 +129,7 @@ def main(args):
             print(p)
 
     if args.download:
-        downalod_dir = f'~/Downloads/neurips2021/{args.keyword}'
+        downalod_dir = os.path.join(f'{args.download_root}', f'{search.venue.lower()}{search.year}', f'{args.keyword}')
         downalod_dir = os.path.expanduser(downalod_dir)
         if not os.path.exists(downalod_dir):
             print(f"create {downalod_dir}")
@@ -149,6 +149,8 @@ if __name__ == '__main__':
                         help='print fetched paper infos.')
     parser.add_argument('--download', action='store_true',
                         help='download pdf files if available on ArXiv.')
+    parser.add_argument('--download_root', type=str, default='~/Downloads/',
+                        help='path root to download.')
     args = parser.parse_args()
 
     main(args)
