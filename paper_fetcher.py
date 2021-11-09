@@ -20,16 +20,23 @@ class NeurIPSPaperSearch(object):
         self.all_paper_titles = None
 
     def cache_all_titles(self):
-        html_text = requests.get(self.accepted_paper_url).text
-        soup = BeautifulSoup(html_text, 'html.parser')
+        html = requests.get(self.accepted_paper_url)
+        print(f"True url: {html.url}")
+        soup = BeautifulSoup(html.text, 'html.parser')
 
-        all_paper_titles = [bold_txt.text for bold_txt in soup.find_all('b')]
-        # make sure the dropped heads are correct.
-        assert all_paper_titles[0] == "NeurIPS | 2021 ", f"Unexpected head at index 0: '{all_paper_titles[0]}'"
-        # print(all_paper_titles[1] == '   Calls 2021')
-        # print(all_paper_titles[1], '   Calls 2021')
-        assert 'Calls 2021' in all_paper_titles[1], f"Unexpected head at index 1: '{all_paper_titles[1]}'"
-        all_paper_titles = all_paper_titles[2:]  # remove two
+        if html.url.endswith("Schedule?type=Poster"):
+            # the html has been redirected to the poster.
+            all_paper_titles = [bold_txt.text for bold_txt in soup.find_all(
+                'div', {'class': 'maincardBody'})]
+        else:
+            all_paper_titles = [bold_txt.text for bold_txt in soup.find_all('b')]
+            # make sure the dropped heads are correct.
+            assert all_paper_titles[0] == "NeurIPS | 2021 ", f"Unexpected head at index 0: '{all_paper_titles[0]}'"
+            # print(all_paper_titles[1] == '   Calls 2021')
+            # print(all_paper_titles[1], '   Calls 2021')
+            assert 'Calls 2021' in all_paper_titles[1], f"Unexpected head at index 1: '{all_paper_titles[1]}'"
+            all_paper_titles = all_paper_titles[2:]  # remove two
+
         print(f'Found {len(all_paper_titles)} papers in {self.venue}{self.year}')
         self.all_paper_titles = all_paper_titles
 
