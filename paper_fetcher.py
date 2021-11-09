@@ -80,14 +80,14 @@ class Paper(object):
         if verbose:
             print(f"Search for {self.title}")
         search = arxiv.Search(
-            query=self.title,
+            query=f'"{self.title}"',
             max_results=3,
             sort_by=arxiv.SortCriterion.Relevance
         )
         for result in search.results():
             fuzz_rat = fuzz.ratio(
                 *sorted((result.title.lower(), self.title.lower()), key=lambda s: len(s)))
-            if fuzz_rat > 50:
+            if fuzz_rat > 70:
                 if verbose:
                     print(f" Matched:", result.title)
                 if verbose:
