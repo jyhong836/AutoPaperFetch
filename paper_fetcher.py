@@ -79,23 +79,24 @@ class Paper(object):
     def find_arxiv(self, verbose=True) -> str:
         if verbose:
             print(f"Search for {self.title}")
-        search = arxiv.Search(
-            query=f'"{self.title}"',
-            max_results=3,
-            sort_by=arxiv.SortCriterion.Relevance
-        )
-        for result in search.results():
-            fuzz_rat = fuzz.ratio(
-                *sorted((result.title.lower(), self.title.lower()), key=lambda s: len(s)))
-            if fuzz_rat > 70:
-                if verbose:
-                    print(f" Matched:", result.title)
-                if verbose:
-                    print(f" fuzz ratio: {fuzz_rat}")
-                # ArxivPaper(self.title, result, fuzz_rat)
-                self.arxiv_ver = result
-                self.arxiv_match_rate = fuzz_rat
-                return result.title
+        for query in [f'"{self.title}"', self.title]:
+            search = arxiv.Search(
+                query=query,
+                max_results=3,
+                sort_by=arxiv.SortCriterion.Relevance
+            )
+            for result in search.results():
+                fuzz_rat = fuzz.ratio(
+                    *sorted((result.title.lower(), self.title.lower()), key=lambda s: len(s)))
+                if fuzz_rat > 80:
+                    if verbose:
+                        print(f" Matched:", result.title)
+                    if verbose:
+                        print(f" fuzz ratio: {fuzz_rat}")
+                    # ArxivPaper(self.title, result, fuzz_rat)
+                    self.arxiv_ver = result
+                    self.arxiv_match_rate = fuzz_rat
+                    return result.title
         else:
             if verbose:
                 print(f"Not found paper: {self.title}")
@@ -108,7 +109,14 @@ class Paper(object):
         self.arxiv_ver.download_pdf(dirpath=to_dir)
 
     def __repr__(self) -> str:
-        return ("[ArXiv] " if self.has_arxiv else " "*len("[ArXiv] ")) + f"{self.title}"
+        if self.has_arxiv:
+            if self.arxiv_match_rate > 99:
+                return "[ArXiv] " + f"{self.title}"
+            else:
+                return ("[ArXiv] " if self.has_arxiv else " "*len("[ArXiv] ")) + f"{self.title}" \
+                    + "\n" + " " * 3 + f"Matched ({self.arxiv_match_rate}): {self.arxiv_ver.title}"
+        else:
+            return " "*len("[ArXiv] ") + f"{self.title}"
 
 
 def main(args):
